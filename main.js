@@ -39,6 +39,10 @@ const readable = Readable({
   }
 })
 
+const doSomething = (value) => {
+  console.log('data - ', value)
+}
+
 const tagsFrom = (tagName) => [`<${tagName}>`, `</${tagName}>`]
 
 const closingTagsPositions = (buf, tag) => {
@@ -46,44 +50,67 @@ const closingTagsPositions = (buf, tag) => {
   return [buf.indexOf(openTag), buf.indexOf(closeTag)]
 }
 
+const tag = 'tag'
 let groupedChunks = []
 let holder = Buffer.from('')
-const transform = Transform({
-  transform(chunk, encoding, cb) {
-    const data = []
-    const tag = 'tag'
+const reduce = (chunk) => {
+    readable.pause()
 
-    groupedChunks.push(chunk)
-    holder = Buffer.concat(groupedChunks)
+    holder = Buffer.concat([holder, chunk])
+    const [init, end] = closingTagsPositions(chunk, tag)
 
-    // const [openTagPosition, closeTagPosition] = closingTagsPositions(holder, 'tag')
-    // if (openTagPosition > -1 && closeTagPosition > -1) {
-    let [openTagPosition, closeTagPosition] = closingTagsPositions(holder, 'tag')
-    while (openTagPosition > -1 && closeTagPosition > -1) {
-      groupedChunks.length = 0
-      data.push(holder.subarray(openTagPosition, closeTagPosition + (tag.length + 3)))
-      // const remainer = holder.subarray(closeTagPosition + (tag.length + 3))
-      // groupedChunks.push(remainer)
-      // holder = Buffer.from('')
-      const remainer = holder.subarray(closeTagPosition + (tag.length + 3))
-      groupedChunks.push(remainer)
-      holder = remainer
-
-      const values = closingTagsPositions(holder, 'tag')
-      openTagPosition = values[0]
-      closeTagPosition = values[1]
+    while (init > -1 && end > -1) {
+      const data = chunk.subarray(init, end + 6)
+      doSomething(data)
     }
-    if (data.length) {
-      cb(null, Buffer.from(data))
-      return
-    }
-    cb(null, Buffer.alloc(0))
-  }
-})
+}
 
-readable.pipe(transform).on('data', chunk => {
-  console.log('data', chunk.toString())
-})
+readable.on('data', reduce)
+
+// let groupedChunks = []
+// let holder = Buffer.from('')
+// const transform = Transform({
+//   transform(chunk, encoding, cb) {
+//     const data = []
+//     const tag = 'tag'
+
+//     groupedChunks.push(chunk)
+//     holder = Buffer.concat(groupedChunks)
+
+//     const [openTagPosition, closeTagPosition] = closingTagsPositions(holder, 'tag')
+//     if (openTagPosition > -1 && closeTagPosition > -1) {
+//     // let [openTagPosition, closeTagPosition] = closingTagsPositions(holder, 'tag')
+//     // while (openTagPosition > -1 && closeTagPosition > -1) {
+//       groupedChunks.length = 0
+//       // data.push(holder.subarray(openTagPosition, closeTagPosition + (tag.length + 3)))
+//       const data = (holder.subarray(openTagPosition, closeTagPosition + (tag.length + 3)))
+//       const remainer = holder.subarray(closeTagPosition + (tag.length + 3))
+//       groupedChunks.push(remainer)
+//       holder = Buffer.from('')
+//       cb(null, data)
+//       return
+//       // const remainer = holder.subarray(closeTagPosition + (tag.length + 3))
+//       // groupedChunks.push(remainer)
+//       // holder = remainer
+
+//       // const values = closingTagsPositions(holder, 'tag')
+//       // openTagPosition = values[0]
+//       // closeTagPosition = values[1]
+//     }
+//     // if (data.length) {
+//     //   cb(null, Buffer.from(data))
+//     //   return
+//     // }
+//     cb(null, Buffer.alloc(0))
+//   }
+// })
+
+// readable
+//   .pipe(transform)
+//   .on('data', chunk => {
+//   readable.pause()
+//   console.log('data', chunk.toString())
+// })
 
 readable.on('end', _ => {
   console.log('end')
