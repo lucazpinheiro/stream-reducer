@@ -9,6 +9,7 @@ const readable = Readable({
       '<tag>points-',
       'of-',
       'interest</tag>',
+      '<tag>no-closing-tag',
       '<tag>',
       'processing',
       '-large-',
@@ -18,22 +19,22 @@ const readable = Readable({
       '</tag>',
       '<tag>ts-book</tag>'
     ]
-    // const fakeData = [
-    //   '<othertag><tag>toy-api</tag></othertag><tag>fs</tag>',
-    //   '<tag>node-webwo',
-    //   'rkers-demo</tag>',
-    //   '<tag>points-',
-    //   'of-',
-    //   'interest</tag><tag>',
-    //   'processing',
-    //   '-large-',
-    //   'files</tag><tag>nodejs-patterns</tag><tag>concurrency-patterns</tag>',
-    //   '<tag>v1</tag><tag>v2</tag><tag>v3</tag>',
-    //   '<tag>',
-    //   'todo-app',
-    //   '</tag><tag>ts',
-    //   '-book</tag><tag>python-api</tag>'
-    // ]
+    const fakeData2 = [
+      '<othertag><tag>toy-api</tag></othertag><tag>fs</tag>',
+      '<tag>node-webwo',
+      'rkers-demo</tag>',
+      '<tag>points-',
+      'of-',
+      'interest</tag><tag>',
+      'processing',
+      '-large-',
+      'files</tag><tag>nodejs-patterns</tag><tag>concurrency-patterns</tag>',
+      '<tag>v1</tag><tag>v2</tag><tag>v3</tag>',
+      '<tag>',
+      'todo-app',
+      '</tag><tag>ts',
+      '-book</tag><tag>python-api</tag>'
+    ]
     fakeData.forEach(str => this.push(str))
     this.push(null)
   }
@@ -62,7 +63,7 @@ const reduce = (chunk) => {
       const data = holder.subarray(init, end + 6)
       holder = holder.subarray(end + 6)
       doSomething(data)
-      const aux = closingTagsPositions(holder, tag)
+      let aux = closingTagsPositions(holder, tag)
       init = aux[0]
       end = aux[1]
     }
